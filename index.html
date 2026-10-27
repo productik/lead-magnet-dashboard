@@ -1,0 +1,1006 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>IK Lead Magnet Funnel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+<style>
+/* Layout: one centred column; sticky-free filter row, tabs, cards on a warm-grey plane. */
+:root{
+  --font-anthropic-sans:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-anthropic-serif:'Newsreader',Georgia,'Times New Roman',serif;
+  --cds-font-size-caption:12.5px; --cds-font-size-body:14.5px; --cds-font-size-heading:16px; --cds-font-size-title:28px;
+  --cds-font-weight-medium:600;
+  --cds-gap-xs:6px; --cds-gap-sm:10px; --cds-gap-md:16px;
+  --cds-pad-xs:5px; --cds-pad-sm:10px; --cds-pad-md:14px; --cds-pad-lg:18px;
+  --cds-radius:8px; --cds-dur-slow:.3s;
+  --color-bg:#f4f4f2; --color-panel:#fcfcfb; --color-fg:#141413; --color-fg-muted:#5e5d59;
+  --color-border-line:#e1e0d9; --color-ok:#00752a; --color-bad:#c0322f;
+  --cds-surface-popover:#ffffff; --cds-border:#d6d5ce; --cds-shadow-popover:0 4px 16px rgba(20,20,19,.12);
+  --cds-text-secondary:#5e5d59;
+  --cds-chart-muted:#b9b8b0; --cds-chart-grid:#e9e8e3; --cds-chart-axis:#c3c2b7; --cds-chart-reference:#898781;
+  --cds-chart-status-critical:#d03b3b;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#6250d6; --s8:#e34948;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --color-bg:#0f0f0e; --color-panel:#1a1a19; --color-fg:#f0efec; --color-fg-muted:#b0afa6;
+  --color-border-line:#2e2e2b; --color-ok:#3ccf6a; --color-bad:#ef6b68;
+  --cds-surface-popover:#242422; --cds-border:#3a3a37; --cds-shadow-popover:0 4px 16px rgba(0,0,0,.5);
+  --cds-text-secondary:#b0afa6;
+  --cds-chart-muted:#55554f; --cds-chart-grid:#2a2a27; --cds-chart-axis:#45453f; --cds-chart-reference:#898781;
+  --cds-chart-status-critical:#e66767;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --color-bg:#0f0f0e; --color-panel:#1a1a19; --color-fg:#f0efec; --color-fg-muted:#b0afa6;
+  --color-border-line:#2e2e2b; --color-ok:#3ccf6a; --color-bad:#ef6b68;
+  --cds-surface-popover:#242422; --cds-border:#3a3a37; --cds-shadow-popover:0 4px 16px rgba(0,0,0,.5);
+  --cds-text-secondary:#b0afa6;
+  --cds-chart-muted:#55554f; --cds-chart-grid:#2a2a27; --cds-chart-axis:#45453f; --cds-chart-reference:#898781;
+  --cds-chart-status-critical:#e66767;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  color-scheme:dark;
+}
+body{background:var(--color-bg);color:var(--color-fg);font-family:var(--font-anthropic-sans);font-size:var(--cds-font-size-body)}
+.lm-page{max-width:1240px;margin-inline:auto;padding-block:24px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.dash-skeleton{color:transparent!important;background:var(--color-border-line);border-radius:4px}
+.lm-loadfail{color:var(--color-bad);font-size:var(--cds-font-size-caption)}
+:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+// Stand-in for the data layer: loads the JSON files published next to this page,
+// keeps the filter state, and redraws on data, filter or width changes.
+window.dash = (() => {
+  const FILES = { kpis: 'kpis.json', funnel: 'funnel.json', prepost: 'prepost.json', tools: 'tools.json', buttons: 'buttons.json', daily: 'daily.json',
+    impact_share: 'impact_share.json', impact_share_tool: 'impact_share_tool.json', impact_value: 'impact_value.json', impact_known: 'impact_known.json',
+    impact_multi: 'impact_multi.json', impact_time: 'impact_time.json', impact_who: 'impact_who.json', impact_cohort: 'impact_cohort.json',
+    fz_rows: 'fz_rows.json', fz_buttons: 'fz_buttons.json', fz_programs: 'fz_programs.json', fz_cross: 'fz_cross.json', fz_repeat: 'fz_repeat.json', fz_specs: 'fz_specs.json',
+    ps_leader: 'ps_leader.json', ps_framework: 'ps_framework.json', ps_summary: 'ps_summary.json', ps_top: 'ps_top.json', ps_breakdown: 'ps_breakdown.json',
+    ps_other: 'ps_other.json', ps_frequent: 'ps_frequent.json', ps_frequent_breakdown: 'ps_frequent_breakdown.json',
+    fz_before_use: 'fz_before_use.json', fz_before_reg: 'fz_before_reg.json', regs_all: 'regs_all.json',
+    impact_v: 'impact_v.json', impact_who_v: 'impact_who_v.json', impact_cohort_v: 'impact_cohort_v.json', impact_share_v: 'impact_share_v.json',
+    conv_v: 'conv_v.json', journeys: 'journeys.json' };
+  const DEF = { period: 30, tool: 'all', geo: 'all', source: 'all', device: 'all', user: 'all' };
+  const store = {}, subs = [];
+  let P = { ...DEF }, timer;
+  const fire = () => subs.forEach((f) => { try { f(); } catch (e) { console.error(e); } });
+  Object.entries(FILES).forEach(([id, file]) => {
+    store[id] = { status: 'loading', data: [] };
+    fetch('data/' + file).then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then((d) => { store[id] = { status: 'ok', data: d }; fire(); })
+      .catch((e) => { store[id] = { status: 'error', data: [], message: String(e) }; fire();
+        const n = document.getElementById('load-error'); if (n) { n.hidden = false; n.textContent = 'Some data failed to load (' + id + '). Reload the page to try again.'; } });
+  });
+  window.addEventListener('resize', () => { clearTimeout(timer); timer = setTimeout(fire, 150); });
+  return {
+    data: (id) => store[id] || { status: 'missing', data: [] },
+    onData: (f) => { subs.push(f); try { f(); } catch (e) { console.error(e); } },
+    params: () => ({ ...P }),
+    setParams: (o) => { P = { ...P, ...o }; fire(); },
+    resetParams: () => { P = { ...DEF }; fire(); },
+    setLink: (name) => { try { history.replaceState(null, '', '#' + name); } catch (e) { /* ignore */ } },
+    colors: ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)', 'var(--s7)', 'var(--s8)'],
+  };
+})();
+</script>
+<style>
+.lm{font-family:var(--font-anthropic-sans);color:var(--color-fg);display:flex;flex-direction:column;gap:var(--cds-gap-md)}
+.lm h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0;text-wrap:balance}
+.lm h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0;text-wrap:balance}
+.lm-take{color:var(--color-fg-muted);margin:0;max-width:72ch}
+.lm-note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0;max-width:80ch}
+.lm-bar{display:flex;flex-wrap:wrap;gap:var(--cds-gap-md);align-items:flex-end}
+.lm-fg{display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+.lm-fl{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.lm-chips{display:flex;gap:var(--cds-gap-xs);flex-wrap:wrap}
+.lm-chip,.lm-tab,.lm-reset{font:inherit;font-size:var(--cds-font-size-caption);cursor:pointer;border:1px solid var(--color-border-line);background:var(--color-panel);color:var(--color-fg);border-radius:var(--cds-radius);padding:var(--cds-pad-xs) var(--cds-pad-sm)}
+.lm-chip[aria-pressed="true"]{border-color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.lm select{font:inherit;font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-sm);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-panel);color:var(--color-fg)}
+.lm-tabs{display:flex;gap:var(--cds-gap-xs);overflow-x:auto;border-bottom:1px solid var(--color-border-line);padding-bottom:var(--cds-pad-xs)}
+.lm-tab{border-color:transparent;background:transparent;color:var(--color-fg-muted);white-space:nowrap}
+.lm-tab[aria-selected="true"]{color:var(--color-fg);border-color:var(--color-border-line);background:var(--color-panel)}
+.lm-kpis{display:grid;gap:var(--cds-gap-md);grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr))}
+.lm-kpi,.lm-card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);min-width:0}
+.lm-kpi{padding:var(--cds-pad-md);display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+.lm-kl{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.lm-kv{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums;line-height:1.1}
+.lm-kd{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);font-variant-numeric:tabular-nums}
+.lm-good{color:var(--color-ok)}.lm-badc{color:var(--color-bad)}
+.lm-card{padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.lm-grid{display:grid;gap:var(--cds-gap-md);grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))}
+.lm-rel{position:relative;min-width:0}
+.lm-tip{position:absolute;z-index:5;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);white-space:nowrap}
+.lm-tip .lm-t1{color:var(--cds-text-secondary)}
+.lm-hb{display:grid;grid-template-columns:minmax(6rem,11rem) 1fr;gap:var(--cds-gap-xs) var(--cds-gap-sm);align-items:center}
+.lm-hbl{font-size:var(--cds-font-size-caption);line-height:1.25}
+.lm-hbt{display:flex;align-items:center;gap:var(--cds-gap-sm);min-width:0}
+.lm-hbf{height:1.25rem;border-radius:0 4px 4px 0;min-width:2px}
+.lm-hbv{font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--color-fg-muted)}
+.lm-hbv b{color:var(--color-fg)}
+.lm .lm-hbv b,.lm .lm-callout b{font-weight:var(--cds-font-weight-medium)}
+.lm-tbl{overflow-x:auto}
+.lm table{border-collapse:collapse;width:100%;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.lm th{text-align:right;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.lm td{text-align:right;padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);white-space:nowrap}
+.lm th:first-child,.lm td:first-child{text-align:left}
+.lm tr.lm-on td{background:var(--color-bg)}
+.lm-hm{display:grid;gap:3px;min-width:34rem}
+.lm-hmh{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);text-align:center;line-height:1.2}
+.lm-hmr{font-size:var(--cds-font-size-caption);display:flex;align-items:center}
+.lm-hmc{height:2.1rem;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.lm-stack{display:flex;height:1.25rem;border-radius:4px;overflow:hidden;gap:2px;background:var(--color-bg)}
+.lm-leg{display:flex;gap:var(--cds-gap-md);flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.lm-sw{display:inline-block;width:.7rem;height:.7rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px}
+.lm-callout{font-size:var(--cds-font-size-body);margin:0}
+.lm-empty{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:0}
+.lm-panel[hidden]{display:none}
+.lm-btns{display:grid;gap:var(--cds-gap-md);grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))}
+.lm-about p,.lm-about li{max-width:80ch;font-size:var(--cds-font-size-body);line-height:1.5}
+.lm-about ul{margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:var(--cds-gap-xs)}
+[data-dash-source-state=empty]{color:transparent}
+.lm-notes{overflow-x:auto}
+.lm-notes h2{margin-top:var(--cds-gap-md)}.lm-notes h3{font-size:var(--cds-font-size-heading);margin:var(--cds-gap-md) 0 0}
+.lm-notes table td,.lm-notes table th{text-align:left;white-space:normal;vertical-align:top}
+.lm-notes code{font-size:12px;background:var(--color-bg);padding:1px 4px;border-radius:4px}
+.lm-notes pre{background:var(--color-bg);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-sm);overflow-x:auto;font-size:12px}
+.lm-notes pre code{background:none;padding:0}
+.lm-notes p,.lm-notes li{max-width:90ch}
+.lm-gt td:first-child,.lm-gt th:first-child{text-align:left}
+.lm-gt td.lm-txt,.lm-gt th.lm-txt{text-align:left;white-space:normal;min-width:12rem}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+</style>
+
+<div class="lm-page"><div class="lm" id="lead-magnet-funnel">
+  <header class="lm-fg">
+    <h1>IK Lead Magnet Funnel</h1>
+    <p class="lm-take" id="takeaway">In the period, <span data-source="kpis" data-field="people" class="dash-skeleton">—</span> people left their details on a lead magnet. <span data-source="kpis" data-field="pre_share" class="dash-skeleton">—</span> had already registered for a webinar before, <span data-source="kpis" data-field="first_after_share" class="dash-skeleton">—</span> registered for the first time after, and <span data-source="kpis" data-field="sales_after" class="dash-skeleton">—</span> went on to buy.</p>
+  </header>
+
+  <p class="lm-loadfail" id="load-error" hidden></p>
+  <div class="lm-bar" id="filters">
+    <div class="lm-fg"><span class="lm-fl">Period</span><div class="lm-chips" id="f-period"></div></div>
+    <div class="lm-fg"><label class="lm-fl" for="f-tool">Tool</label><select id="f-tool"></select></div>
+    <div class="lm-fg"><label class="lm-fl" for="f-geo">Geo</label><select id="f-geo"></select></div>
+    <div class="lm-fg"><label class="lm-fl" for="f-source">Source</label><select id="f-source"></select></div>
+    <div class="lm-fg"><label class="lm-fl" for="f-device">Device</label><select id="f-device"></select></div>
+    <div class="lm-fg"><label class="lm-fl" for="f-user">User</label><select id="f-user"></select></div>
+    <div class="lm-fg"><span class="lm-fl">&nbsp;</span><button class="lm-reset" id="f-reset" type="button">Reset</button></div>
+  </div>
+
+  <p class="lm-note" id="filter-note">The User filter applies to leads, registrations, sales and processing. Page numbers (opened, uploaded, the on-page funnel, buttons) ignore it, because about 94% of page visitors are anonymous.</p>
+
+  <nav class="lm-tabs" role="tablist" aria-label="Sections">
+    <button class="lm-tab" role="tab" type="button" id="overview" data-tab="overview">Overview</button>
+    <button class="lm-tab" role="tab" type="button" id="pre-post" data-tab="pre-post">Pre vs post LM</button>
+    <button class="lm-tab" role="tab" type="button" id="compare" data-tab="compare">Compare tools</button>
+    <button class="lm-tab" role="tab" type="button" id="experience" data-tab="experience">Experience</button>
+    <button class="lm-tab" role="tab" type="button" id="conversions" data-tab="conversions">Conversions</button>
+    <button class="lm-tab" role="tab" type="button" id="impact" data-tab="impact">Impact</button>
+    <button class="lm-tab" role="tab" type="button" id="personas" data-tab="personas">Personas &amp; ranking</button>
+    <button class="lm-tab" role="tab" type="button" id="tool-funnels" data-tab="tool-funnels">Tool funnels</button>
+    <button class="lm-tab" role="tab" type="button" id="about" data-tab="about">Data notes</button>
+  </nav>
+
+  <!-- Overview -->
+  <section class="lm-panel" id="p-overview">
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <div class="lm-kpis" id="kpi-overview">
+        <div class="lm-kpi"><span class="lm-kl">Leads captured</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="leads">—</span><span class="lm-kd"><span data-source="kpis" data-field="leads_change" data-fmt="chg">—</span> vs prior period</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Registered for webinar after the tool</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="registered">—</span><span class="lm-kd"><span data-source="kpis" data-field="registered_change" data-fmt="chg">—</span> vs prior period</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Sales after the tool</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="sales_after">—</span><span class="lm-kd"><span data-source="kpis" data-field="sales_share">—</span> of leads</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Opened a tool page</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="opened">—</span><span class="lm-kd"><span data-source="kpis" data-field="opened_change" data-fmt="chg">—</span> vs prior period</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Uploaded a resume</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="uploaded">—</span><span class="lm-kd"><span data-source="kpis" data-field="upload_share">—</span> of openers</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Median processing time</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="processing_p50" data-fmt="sec">—</span><span class="lm-kd"><span data-source="kpis" data-field="processing_change_s" data-fmt="dsec">—</span> vs prior period</span></div>
+      </div>
+      <p class="lm-note">Leads, registrations, sales and processing cover every lead magnet (backend + HubSpot + finance). Opened and uploaded come from page tracking, which exists only for Resume Analyzer, Salary Analyzer and AI Quotient.</p>
+
+      <div class="lm-card" id="card-funnel">
+        <h2>The on-page funnel</h2>
+        <p class="lm-note">People reaching each step on the tool pages, with the share kept from the step before. Production pages only.</p>
+        <div class="lm-rel" id="funnel-chart" data-source="funnel" style="min-height:12rem"></div>
+        <p class="lm-callout" id="funnel-loss"></p>
+      </div>
+
+      <div class="lm-card" id="card-daily">
+        <h2>Leads per day</h2>
+        <p class="lm-note">Unique people leaving their details, by tool. A sudden step usually means a release, not a trend.</p>
+        <div class="lm-rel" id="daily-chart" data-source="daily" style="min-height:15rem"></div>
+        <div class="lm-leg" id="daily-legend" data-source="daily"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pre vs post -->
+  <section class="lm-panel" id="p-pre-post" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <p class="lm-note">Leads (unique people) in the period, split by webinar registration relative to the day they used the lead magnet, and how many in each group bought afterwards. Registrations come from HubSpot's daily snapshot history; sales from finance net revenue, any sale on or after the lead date up to the data date. With Tool set to All, each person counts once, at their first lead magnet.</p>
+      <div class="lm-kpis" id="kpi-prepost">
+        <div class="lm-kpi"><span class="lm-kl">Leads (unique people)</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="people">—</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Already registered before</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="pre">—</span><span class="lm-kd"><span data-source="kpis" data-field="pre_share">—</span> of leads</span></div>
+        <div class="lm-kpi"><span class="lm-kl">…of those, registered again after</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="again">—</span><span class="lm-kd"><span data-source="kpis" data-field="again_share">—</span> of them</span></div>
+        <div class="lm-kpi"><span class="lm-kl">First registered after the tool</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="first_after">—</span><span class="lm-kd"><span data-source="kpis" data-field="first_after_share">—</span> of leads</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Sales after the tool</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="sales_after">—</span><span class="lm-kd"><span data-source="kpis" data-field="sales_share">—</span> of leads</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Net revenue from those sales</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="revenue_after" data-fmt="usd">—</span><span class="lm-kd">median <span data-source="kpis" data-field="days_to_sale" data-fmt="days">—</span> from lead to sale</span></div>
+      </div>
+      <p class="lm-note"><span data-source="kpis" data-field="bought_before">—</span> of these leads had already bought before using the tool.</p>
+      <div class="lm-grid">
+        <div class="lm-card" id="card-group-rate">
+          <h2>Sales conversion by group</h2>
+          <p class="lm-note">Share of each group that bought on or after the lead date.</p>
+          <div class="lm-rel" id="group-chart" data-source="prepost" style="min-height:7rem"></div>
+        </div>
+        <div class="lm-card" id="card-reach">
+          <h2>Who each tool reaches</h2>
+          <p class="lm-note">Share of each tool's leads by registration group.</p>
+          <div class="lm-rel" id="reach-chart" data-source="tools" style="min-height:10rem"></div>
+          <div class="lm-leg" id="reach-legend"></div>
+        </div>
+      </div>
+      <div class="lm-card" id="card-prepost-table">
+        <h2>By tool</h2>
+        <p class="lm-note">Per tool, so someone who used two tools appears in both rows. Rate = sales after the tool ÷ people in that group. Recent leads have had less time to buy.</p>
+        <div class="lm-tbl"><table id="prepost-table" data-source="tools" data-row-key="row_id"><thead><tr>
+          <th data-field="name">Tool</th><th data-field="pp_people">Leads</th><th data-field="pre">Registered before</th><th data-field="pre_share">%</th>
+          <th data-field="first_after">First registered after</th><th data-field="first_after_share">%</th><th data-field="not_reg">Not registered</th>
+          <th data-field="sales_pre">Sales: reg. before</th><th data-field="rate_pre">Rate</th><th data-field="sales_after_reg">Sales: reg. after</th><th data-field="rate_after_reg">Rate</th>
+          <th data-field="sales_not_reg">Sales: not reg.</th><th data-field="rate_not_reg">Rate</th><th data-field="sales">Total sales</th><th data-field="revenue">Net revenue</th><th data-field="bought_before">Bought before</th>
+        </tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compare -->
+  <section class="lm-panel" id="p-compare" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <div class="lm-card" id="card-heatmap">
+        <h2>Every tool on the same steps</h2>
+        <p class="lm-note">Step conversion: share of the step before. Same definitions across tools, so a cell far below its column neighbours is usually a page problem, not an audience difference.</p>
+        <div class="lm-tbl"><div class="lm-hm" id="heatmap" data-source="tools"></div></div>
+      </div>
+      <div class="lm-card" id="card-stage-table">
+        <h2>People at each step</h2>
+        <div class="lm-tbl"><table id="stage-table" data-source="tools" data-row-key="row_id"><thead><tr>
+          <th data-field="name">Tool</th><th data-field="s1">Opened</th><th data-field="s2">Uploaded</th><th data-field="s3">Submitted</th><th data-field="s4">Saw report</th><th data-field="s5">Clicked register</th><th data-field="s6">Registered</th>
+        </tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="lm-card" id="card-backend">
+        <h2>Backend funnel, every lead magnet</h2>
+        <p class="lm-note">People (unique email): gave details → got a report → registered for a webinar on or after the lead date.</p>
+        <div class="lm-tbl"><table id="backend-table" data-source="tools" data-row-key="row_id"><thead><tr>
+          <th data-field="name">Tool</th><th data-field="leads">Leads</th><th data-field="got_report">Got report</th><th data-field="report_rate">Report rate</th><th data-field="registered">Registered</th><th data-field="reg_rate">Registration rate</th>
+        </tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section class="lm-panel" id="p-experience" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <div class="lm-grid">
+        <div class="lm-card" id="card-processing">
+          <h2>How long the system takes</h2>
+          <p class="lm-note">Model response time per analysis: typical and the slowest one in twenty. Felt wait is the page view: last submit click to the report.</p>
+          <div class="lm-tbl"><table id="processing-table" data-source="tools" data-row-key="row_id"><thead><tr>
+            <th data-field="name">Tool</th><th data-field="p50">Typical</th><th data-field="p95">Slowest 5%</th><th data-field="felt_wait">Felt wait</th><th data-field="runs">Runs</th>
+          </tr></thead><tbody></tbody></table></div>
+        </div>
+        <div class="lm-card" id="card-dwell">
+          <h2>Time spent on the report</h2>
+          <p class="lm-note">Median minutes from first report view to the last tracked click in that visit (a lower bound).</p>
+          <div class="lm-rel" id="dwell-chart" data-source="tools" style="min-height:6rem"></div>
+        </div>
+      </div>
+      <div class="lm-card" id="card-repeat">
+        <h2>How many times one person uses the tool</h2>
+        <p class="lm-note">Share of people by runs in the period (one run = one resume within 10 minutes). Coming back with an improved resume is good; one person pushing many different resumes is the only pattern worth limiting.</p>
+        <div class="lm-tbl"><table id="repeat-table" data-source="tools" data-row-key="row_id"><thead><tr>
+          <th data-field="name">Tool</th><th data-field="once">Once</th><th data-field="twice">Twice</th><th data-field="three">3 times</th><th data-field="four_plus">4+ times</th><th data-field="same_resume">Repeats with same resume</th><th data-field="many_resumes">People with 4+ resumes</th><th data-field="users">People</th>
+        </tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="lm-card" id="card-losses">
+        <h2>Where we lose the most people</h2>
+        <p class="lm-note">On-page funnel steps ranked by people lost, not percentage.</p>
+        <div class="lm-rel" id="loss-chart" data-source="funnel" style="min-height:8rem"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Conversions -->
+  <section class="lm-panel" id="p-conversions" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <div class="lm-kpis">
+        <div class="lm-kpi"><span class="lm-kl">Registered after using a tool (HubSpot)</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="registered">—</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Lead to registration</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="lead_to_reg">—</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Registered on a results page (tracked)</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="regs_on_page">—</span></div>
+        <div class="lm-kpi"><span class="lm-kl">Registered without using the tool</span><span class="lm-kv dash-skeleton" data-source="kpis" data-field="direct_reg">—</span></div>
+      </div>
+      <p class="lm-note">HubSpot sees every registration after a lead. Page tracking only sees registrations made on the tool pages, so it is much smaller.</p>
+      <p class="lm-note"><b>All six career tools:</b> ATS Resume Checker, FDE Gap Analyzer, AI Mock Interview, Resume Analyzer, Salary Analyzer and AI Quotient. Uses the Period filter only.</p>
+      <div class="lm-card" id="card-conv-all">
+        <h2>Conversions by tool, most to fewest</h2>
+        <p class="lm-note">Visitors = unique people who opened the tool page. Leads = people who gave their details. Registered = a webinar registration on or after using the tool. Bought = a program sale after that. Each tool uses its most complete source (last column): lead records for the four tools that create them, page visits and registration forms for ATS and Mock Interview. Rates are out of leads where there are leads, else out of visitors. Ordered by purchases, then registrations.</p>
+        <div class="lm-tbl" id="conv-all"></div><p class="lm-callout" id="conv-all-s"></p>
+      </div>
+      <div class="lm-card" id="card-attendance">
+        <h2>Did registrants attend the webinar?</h2>
+        <p class="lm-note">Of the people who registered for a webinar after using each tool, how many actually joined one on Zoom on or after their registration date (matched on HubSpot ID or email), how many stayed 30+ minutes, and whether attendees bought more than people who registered but didn't come. Same order as the ranking above.</p>
+        <div class="lm-tbl" id="conv-attendance"></div><p class="lm-callout" id="conv-attendance-s"></p>
+      </div>
+      <div class="lm-card" id="card-reg-types">
+        <h2>How people registered, by tool</h2>
+        <p class="lm-note">Each registration on a tool page, by when it happened: before using the tool, on the results page, or after using the tool but somewhere else. Attended = joined a webinar on Zoom on or after the registration date. Bought afterwards = a finance sale on or after the registration date.</p>
+        <div class="lm-tbl" id="reg-types"></div>
+      </div>
+      <div class="lm-card" id="card-buttons">
+        <h2>Which button earns the registration</h2>
+        <p class="lm-note">The last registration button pressed before each tracked registration, for every tool with a page.</p>
+        <div class="lm-btns" id="buttons"></div>
+      </div>
+      <div class="lm-card" id="card-direct">
+        <h2>Registered without ever using the tool</h2>
+        <p class="lm-note">People who registered on a tool page before uploading or starting anything. A large share means the page works as a landing page more than a lead magnet.</p>
+        <div class="lm-rel" id="direct-chart" style="min-height:6rem"></div>
+        <div class="lm-kpis" id="direct-kpis"></div>
+        <h2 style="font-size:var(--cds-font-size-body)">Where they registered from</h2>
+        <p class="lm-note">The tool page, the last button pressed before registering, and the webinar they signed up for.</p>
+        <div class="lm-tbl" id="direct-from"></div>
+        <h2 style="font-size:var(--cds-font-size-body)">Who they are</h2>
+        <p class="lm-note">From their HubSpot contact (matched on email; Unknown = no match) and their first visit to the tool page.</p>
+        <div class="lm-chips" id="direct-dim"></div>
+        <div class="lm-tbl" id="direct-who"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Impact -->
+  <section class="lm-panel" id="p-impact" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <p class="lm-note">Do the career tools bring in new people and turn them into webinar registrations and sales? Covers the tools that create lead records: Resume Analyzer, Salary Analyzer, AI Quotient and FDE Gap Analyzer. ATS Resume Checker and AI Mock Interview don't create lead records; see Conversions and Tool funnels for them. Percentages always show the number of people next to them.</p>
+      <div class="lm-card"><h2>How much of IK's sales come after a career tool?</h2><p class="lm-note">Every IK sale in the period (finance), and whether the buyer had used a career tool before buying. Period filter only. Tool history starts on 18 Apr 2026, so this is a minimum.</p>
+        <div class="lm-kpis" id="im-kpis"></div><p class="lm-callout" id="im-share-s"></p><div class="lm-tbl" id="im-share-tool"></div></div>
+      <div class="lm-card"><h2>What each tool is worth</h2><p class="lm-note">For each tool: people who used it in the period, how many were new to IK, registered for a webinar, and bought a program afterwards, and the revenue that followed.</p><div class="lm-tbl" id="im-value"></div><p class="lm-callout" id="im-value-s"></p></div>
+      <div class="lm-card"><h2>Were these people new to IK?</h2><p class="lm-note">New to IK = their first contact with IK was this tool (their HubSpot contact was created when they used it). Already known = they were in HubSpot before: an earlier lead, webinar or customer. This shows whether the tools find new prospects or mostly re-engage people we already have.</p><div class="lm-tbl" id="im-known"></div><p class="lm-callout" id="im-known-s"></p></div>
+      <div class="lm-card"><h2>Does trying more tools lead to more sales?</h2><p class="lm-note">We count how many different career tools each person has used. If people who use two or more tools buy more often, nudging users to try a second tool is worth doing.</p><div class="lm-tbl" id="im-multi"></div><p class="lm-callout" id="im-multi-s"></p></div>
+      <div class="lm-card"><h2>Are newer months converting better?</h2><p class="lm-note">People who first used a tool in each month, and how many registered or bought within 30, 60 and 90 days. Comparing the same time window keeps old and new months fair. A dash means that window hasn't finished yet. Uses Tool, Geo, Source, Device and User, not Period.</p><div class="lm-tbl" id="im-cohort"></div></div>
+      <div class="lm-card"><h2>How quickly do people register and buy?</h2><p class="lm-note">Days from first using the tool to the first webinar registration, and to the first purchase.</p><div class="lm-grid" id="im-time"></div><p class="lm-callout" id="im-time-s"></p></div>
+      <div class="lm-card"><h2>Who is most likely to register and buy?</h2><p class="lm-note">People grouped by what they told the tool or where they came from, with how many registered and bought. Uses Period and Tool (other filters are in the local app).</p>
+        <div class="lm-chips" id="im-dim"></div><div class="lm-tbl" id="im-who"></div></div>
+    </div>
+  </section>
+
+  <!-- Personas & ranking -->
+  <section class="lm-panel" id="p-personas" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <p class="lm-note">Which lead magnets bring the most registrations and sales, how to judge each one, and who their users are. People = unique emails per tool. Uses the Period filter only; the other filters are in the local app.</p>
+      <div class="lm-card"><h2>Lead magnets ranked by registrations</h2><p class="lm-note">Registered = a webinar registration on or after the lead date (HubSpot). Bought = a sale on or after the lead date (finance). Sales share = the tool's share of all sales that followed a lead magnet.</p>
+        <div class="lm-tbl" id="ps-leader"></div><div class="lm-grid" id="ps-leader-bars"></div></div>
+      <div class="lm-card"><h2>How to judge each lead magnet</h2><p class="lm-note">Each tool's job, the one metric that says whether it works (north star), what moves it, and what must not get worse (guardrails), with today's values.</p><div class="lm-tbl" id="ps-framework"></div></div>
+      <div class="lm-card"><h2>User personas</h2><p class="lm-note">Age isn't collected by any tool, so career stage (years of experience) stands in for it. Coming back = active on a lead magnet on more than one day since Apr 18.</p>
+        <div class="lm-chips" id="ps-pick"></div>
+        <p class="lm-callout" id="ps-summary"></p>
+        <h2 style="font-size:var(--cds-font-size-body)">Most common personas (career stage × job area × IK status)</h2><div class="lm-tbl" id="ps-top"></div>
+        <div class="lm-grid">
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Career stage</h2><div class="lm-tbl" id="ps-b-career_stage"></div></div>
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Profession (job area)</h2><div class="lm-tbl" id="ps-b-domain"></div></div>
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">IK learner or not</h2><div class="lm-tbl" id="ps-b-user_type"></div></div>
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Where they're from</h2><div class="lm-tbl" id="ps-b-geo"></div></div>
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Do they come back?</h2><div class="lm-tbl" id="ps-b-visits"></div></div>
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Other tools used by people who came back</h2><div class="lm-tbl" id="ps-other"></div></div>
+        </div>
+      </div>
+      <div class="lm-card"><h2>People who keep using our tools</h2><p class="lm-note">Active on 4+ different days across any lead magnet. Who they are and how many register.</p>
+        <div class="lm-kpis" id="ps-freq-kpis"></div>
+        <div class="lm-grid">
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Career stage</h2><div class="lm-tbl" id="ps-freq-career_stage"></div></div>
+          <div class="lm-fg"><h2 style="font-size:var(--cds-font-size-body)">Profession (job area)</h2><div class="lm-tbl" id="ps-freq-domain"></div></div>
+        </div></div>
+    </div>
+  </section>
+
+  <!-- Tool funnels -->
+  <section class="lm-panel" id="p-tool-funnels" hidden>
+    <div class="lm-fg" style="gap:var(--cds-gap-md)">
+      <p class="lm-note">Step-by-step detail for each tool, from raw page clicks and visits (production pages only) plus backend, HubSpot and finance data. Uses the Period filter; the other filters don't apply here.</p>
+      <div class="lm-chips" id="fz-pick"></div>
+      <div class="lm-kpis" id="fz-kpis"></div>
+      <p class="lm-note" id="fz-ik"></p>
+      <div class="lm-fg" style="gap:var(--cds-gap-md)" id="fz-sections"></div>
+      <div class="lm-card"><h2>Buttons</h2><p class="lm-note">People who clicked each button, and how many of them registered for a webinar afterwards (a registration form or a tracked registration click at or after the click).</p><div class="lm-tbl" id="fz-buttons"></div></div>
+      <div class="lm-card"><h2>Programs bought after the tool</h2><p class="lm-note">Programs bought by people who registered after visiting this tool.</p><div class="lm-tbl" id="fz-programs"></div></div>
+      <div class="lm-card" id="fz-gaps-card"><h2>Not tracked yet</h2><p class="lm-note">These steps have no click or page data in BigQuery, so they can't be counted until tracking is added.</p><ul id="fz-gaps"></ul></div>
+      <div class="lm-card"><h2>Which tools did people use before this one?</h2><p class="lm-note">Each row is a tool; each column names an earlier tool and counts the people who used it before their first use of the row's tool. People = first-time users of the row's tool in the period.</p><div class="lm-tbl" id="fz-before-use"></div></div>
+      <div class="lm-card"><h2>Which tools did registrants use before registering?</h2><p class="lm-note">Each row is the tool someone used before registering for a webinar (HubSpot); each column names another tool they had also used before that registration, with the number of people.</p><div class="lm-tbl" id="fz-before-reg"></div></div>
+      <div class="lm-card"><h2>The path to registration: which tool, in what order</h2><p class="lm-note">For everyone who registered for a webinar after using a career tool, the tools they used in order (first use of each) up to the day they registered. Read “AI Quotient → Salary Analyzer → Registered” as: used AI Quotient first, then Salary Analyzer, then registered. Covers the four tools with lead records; ATS and Mock Interview can't be placed in a person's history.</p>
+        <div class="lm-kpis" id="fz-j-kpis"></div><div class="lm-tbl" id="fz-journeys"></div></div>
+      <div class="lm-card"><h2>How often each tool is used again, and over what span</h2><p class="lm-note">Backend runs per person (one run = one resume within 10 minutes). Same resume only = every repeat used the identical file; different resumes = two or more files. A very high 'most resumes by one person' usually means a bot or an internal tester. Span = days between a repeat user's first and last run.</p><div class="lm-tbl" id="fz-repeat"></div></div>
+    </div>
+  </section>
+
+  <!-- Data notes -->
+  <section class="lm-panel lm-about" id="p-about" hidden>
+    <div class="lm-card lm-notes" id="data-notes"><p class="lm-note">Loading…</p></div>
+  </section>
+</div>
+
+</div>
+
+<script>
+(() => {
+  const TOOLS = [['resume', 'Resume Analyzer'], ['salary', 'Salary Analyzer'], ['aiq', 'AI Quotient'], ['fde', 'FDE Gap Analyzer']];
+  const PAGE = ['resume', 'salary', 'aiq'];
+  const PERIODS = [7, 30, 90, 180];
+  const SEGS = {
+    geo: [['all', 'All'], ['in', 'India'], ['us', 'US'], ['rest', 'Rest']],
+    source: [['all', 'All'], ['org', 'Organic'], ['paid', 'Paid'], ['email', 'Email & SMS'], ['ref', 'Referral'], ['direct', 'Direct / unknown'], ['other', 'Other']],
+    device: [['all', 'All'], ['mob', 'Mobile'], ['desk', 'Desktop']],
+    user: [['all', 'All'], ['ik', 'IK learner'], ['nonik', 'Non-IK']],
+  };
+  const STAGES = ['Opened the tool', 'Uploaded a resume', 'Submitted for analysis', 'Saw the report', 'Clicked register', 'Registered'];
+  const GROUPS = ['Registered before the tool', 'First registered after the tool', 'Not registered'];
+  const nf = d3.format(','), pf = d3.format('.1%'), pf0 = d3.format('.0%');
+  const usd = (v) => (v >= 10000 ? '$' + Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 }).format(v) : '$' + nf(Math.round(v)));
+  const toolColor = (k) => dash.colors[TOOLS.findIndex((t) => t[0] === k)];
+  const groupColor = (g) => (g === GROUPS[0] ? dash.colors[0] : g === GROUPS[1] ? dash.colors[2] : 'var(--cds-chart-muted)');
+  const toolName = (k) => (TOOLS.find((t) => t[0] === k) || [k, k])[1];
+  const root = document.getElementById('lead-magnet-funnel');
+  let tab = 'overview';
+
+  const fmt = (v, field, kind) => {
+    if (v === null || v === undefined || Number.isNaN(v)) return '—';
+    if (kind === 'chg') return (v > 0 ? '+' : '') + pf(v);
+    if (kind === 'sec') return v.toFixed(1) + 's';
+    if (kind === 'dsec') return (v > 0 ? '+' : '') + v.toFixed(1) + 's';
+    if (kind === 'usd' || field === 'revenue' || field === 'revenue_after') return usd(v);
+    if (kind === 'days') return nf(v) + (v === 1 ? ' day' : ' days');
+    if (/share|rate|_to_|^once$|^twice$|^three$|four_plus|same_resume/.test(field)) return pf(v);
+    if (/^p50$|^p95$/.test(field)) return v.toFixed(1) + 's';
+    if (field === 'felt_wait') return nf(v) + 's';
+    if (field === 'dwell') return v.toFixed(1) + ' min';
+    if (typeof v === 'number') return nf(v);
+    return String(v);
+  };
+  const rows = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.data : null; };
+  const params = () => {
+    const p = dash.params();
+    const o = { period: Number(p.period) || 30, tool: p.tool || 'all' };
+    Object.keys(SEGS).forEach((k) => { o[k] = p[k] || 'all'; });
+    o.fk = `${o.geo}|${o.source}|${o.device}|${o.user}`;
+    o.key = `${o.period}|${o.tool}|${o.fk}`;
+    return o;
+  };
+  // Row lookup by row_id, built once per loaded file.
+  const idx = new Map();
+  const byId = (id) => {
+    const r = rows(id); if (!r) return null;
+    const c = idx.get(id);
+    if (c && c.src === r) return c.map;
+    const map = new Map(r.map((x) => [x.row_id, x])); idx.set(id, { src: r, map }); return map;
+  };
+  const toolRow = (p, t) => { const m = byId('tools'); return m ? m.get(`${p.period}|${p.fk}|${t}`) : null; };
+
+  // Filters
+  const fp = document.getElementById('f-period'), ft = document.getElementById('f-tool');
+  ft.append(new Option('All tools', 'all'), ...TOOLS.map(([k, n]) => new Option(n, k)));
+  ft.addEventListener('change', () => dash.setParams({ tool: ft.value }));
+  const segSel = {};
+  Object.entries(SEGS).forEach(([k, opts]) => {
+    const el = document.getElementById('f-' + k); segSel[k] = el;
+    el.append(...opts.map(([v, n]) => new Option(n, v)));
+    el.addEventListener('change', () => dash.setParams({ [k]: el.value }));
+  });
+  document.getElementById('f-reset').addEventListener('click', () => dash.resetParams());
+  const drawFilters = () => {
+    const p = params();
+    fp.replaceChildren(...PERIODS.map((d) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'lm-chip'; b.textContent = `Last ${d} days`;
+      b.setAttribute('aria-pressed', String(d === p.period));
+      b.addEventListener('click', () => dash.setParams({ period: d }));
+      return b;
+    }));
+    ft.value = p.tool;
+    Object.keys(SEGS).forEach((k) => { segSel[k].value = p[k]; });
+  };
+
+  // Tabs
+  const tabs = [...root.querySelectorAll('.lm-tab')];
+  const show = (name) => {
+    tab = name;
+    tabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    root.querySelectorAll('.lm-panel').forEach((p) => { p.hidden = p.id !== 'p-' + name; });
+    drawTab();
+  };
+  tabs.forEach((b) => b.addEventListener('click', () => { show(b.dataset.tab); dash.setLink(b.dataset.tab); }));
+
+  // Single-value marks from kpis
+  const fillKpis = () => {
+    const k = byId('kpis'), p = params();
+    const key = p.key;
+    const r = k ? k.get(key) || null : null;
+    root.querySelectorAll('[data-source="kpis"][data-field]').forEach((el) => {
+      if (el.dataset.field === 'through') return;
+      el.dataset.where = 'row_id=' + key;
+      el.classList.toggle('dash-skeleton', !k);
+      const v = r ? r[el.dataset.field] : null;
+      el.textContent = fmt(v, el.dataset.field, el.dataset.fmt);
+      el.classList.remove('lm-good', 'lm-badc');
+      if (el.dataset.fmt === 'chg' && v) el.classList.add(v > 0 ? 'lm-good' : 'lm-badc');
+      if (el.dataset.fmt === 'dsec' && v) el.classList.add(v < 0 ? 'lm-good' : 'lm-badc');
+    });
+  };
+
+  // Tooltip helper
+  const tipFor = (box) => {
+    let t = box.querySelector('.lm-tip');
+    if (!t) { t = document.createElement('div'); t.className = 'lm-tip'; t.hidden = true; box.append(t); }
+    return {
+      show(e, title, line) {
+        t.replaceChildren();
+        const a = document.createElement('div'); a.className = 'lm-t1'; a.textContent = title;
+        const b = document.createElement('div'); b.textContent = line;
+        t.append(a, b); t.hidden = false;
+        const bb = box.getBoundingClientRect();
+        let x = e.clientX - bb.left + 12, y = e.clientY - bb.top + 12;
+        if (x + t.offsetWidth > bb.width) x = Math.max(0, e.clientX - bb.left - t.offsetWidth - 12);
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+      },
+      hide() { t.hidden = true; },
+    };
+  };
+
+  // Horizontal bars (HTML, scales with the card)
+  const hbars = (box, items, empty) => {
+    box.replaceChildren();
+    if (!items.length) { const p = document.createElement('p'); p.className = 'lm-empty'; p.textContent = empty; box.append(p); return; }
+    const max = d3.max(items, (d) => d.value) || 1;
+    const g = document.createElement('div'); g.className = 'lm-hb';
+    const tip = tipFor(box);
+    items.forEach((d) => {
+      const l = document.createElement('div'); l.className = 'lm-hbl'; l.textContent = d.label;
+      const tr = document.createElement('div'); tr.className = 'lm-hbt';
+      const f = document.createElement('div'); f.className = 'lm-hbf';
+      f.style.width = `calc(${(d.value / max) * 78}% + 2px)`; f.style.background = d.color;
+      const v = document.createElement('span'); v.className = 'lm-hbv';
+      const b = document.createElement('b'); b.textContent = d.text; v.append(b);
+      if (d.sub) v.append(' ' + d.sub);
+      tr.append(f, v);
+      tr.addEventListener('mousemove', (e) => tip.show(e, d.label, d.text + (d.sub ? ' ' + d.sub : '')));
+      tr.addEventListener('mouseleave', () => tip.hide());
+      g.append(l, tr);
+    });
+    box.append(g);
+  };
+
+  const pageToolsShown = (p) => (p.tool === 'all' ? PAGE : PAGE.includes(p.tool) ? [p.tool] : []);
+  const toolsShown = (p) => (p.tool === 'all' ? TOOLS.map((t) => t[0]) : [p.tool]);
+  const NOPAGE = 'This tool has no tracked page, so there are no on-page numbers for it.';
+
+  // Overview
+  const drawFunnel = () => {
+    const box = document.getElementById('funnel-chart'), loss = document.getElementById('funnel-loss');
+    const f = byId('funnel'), p = params();
+    if (!f) { box.replaceChildren(); loss.textContent = ''; return; }
+    const r = [1, 2, 3, 4, 5, 6].map((i) => f.get(`${p.key}|${i}`)).filter(Boolean);
+    hbars(box, r.map((x, i) => ({
+      label: x.stage, value: x.people, color: i === 0 ? 'var(--cds-chart-muted)' : dash.colors[0],
+      text: nf(x.people), sub: i ? `· ${pf(x.of_previous ?? 0)} of the step before` : '',
+    })), NOPAGE);
+    loss.replaceChildren();
+    if (r.length > 1) {
+      const w = r.slice(1).reduce((a, b) => (b.lost > a.lost ? b : a));
+      const prev = r.find((x) => x.step === w.step - 1);
+      const b = document.createElement('b'); b.textContent = nf(w.lost) + ' people';
+      loss.append('Biggest single loss: ', b, ` between “${prev.stage}” and “${w.stage}”.`);
+    }
+  };
+
+  const drawDaily = () => {
+    const box = document.getElementById('daily-chart'), leg = document.getElementById('daily-legend');
+    const d = rows('daily'), p = params();
+    box.replaceChildren(); leg.replaceChildren();
+    if (!d) return;
+    const shown = toolsShown(p);
+    const ok = (want, got) => want === 'all' || want === got;
+    const sums = new Map();
+    d.forEach((x) => {
+      const [day, tool, g, s, dv, u] = x.row_id.split('|');
+      if (!shown.includes(tool) || !ok(p.geo, g) || !ok(p.source, s) || !ok(p.device, dv) || !ok(p.user, u)) return;
+      const k2 = day + '|' + tool; sums.set(k2, (sums.get(k2) || 0) + x.leads);
+    });
+    const days0 = [...new Set(d.map((x) => x.row_id.slice(0, 10)))].sort();
+    const last = new Date(days0[days0.length - 1]);
+    const start = d3.utcDay.offset(last, -(p.period - 1));
+    const allDays = d3.utcDays(start, d3.utcDay.offset(last, 1));
+    const data = [];
+    const series = shown.map((k) => ({ k, pts: allDays.map((dt) => {
+      const pt = { date: dt, tool: k, leads: sums.get(d3.utcFormat('%Y-%m-%d')(dt) + '|' + k) || 0 }; data.push(pt); return pt;
+    }) })).filter((s) => s.pts.some((x) => x.leads > 0));
+    if (!series.length) { const e = document.createElement('p'); e.className = 'lm-empty'; e.textContent = 'No leads in this period.'; box.append(e); return; }
+    const W = Math.max(280, box.clientWidth), H = 240, m = { t: 10, r: 12, b: 26, l: 40 };
+    const x = d3.scaleUtc([start, last], [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, d3.max(data, (v) => v.leads) || 1], [H - m.b, m.t]).nice();
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('display', 'block');
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line')
+      .attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--cds-chart-grid)');
+    const ya = svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(0).tickFormat(nf));
+    ya.attr('font-size', null).attr('font-family', null).select('.domain').remove();
+    ya.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+    const xa = svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(Math.min(6, Math.floor(W / 110))).tickSize(0).tickFormat(d3.utcFormat('%b %-d')));
+    xa.attr('font-size', null).attr('font-family', null).select('.domain').attr('stroke', 'var(--cds-chart-axis)');
+    xa.selectAll('text').attr('fill', 'var(--color-fg-muted)').attr('dy', '1.1em').style('font-size', 'var(--cds-font-size-caption)');
+    const line = d3.line().x((v) => x(v.date)).y((v) => y(v.leads));
+    series.forEach((s) => svg.append('path').attr('d', line(s.pts)).attr('fill', 'none')
+      .attr('stroke', toolColor(s.k)).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round'));
+    const rule = svg.append('line').attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-reference)').attr('opacity', 0);
+    const tip = tipFor(box);
+    const days = d3.utcDays(start, d3.utcDay.offset(last, 1));
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('mousemove', (e) => {
+        const [px] = d3.pointer(e); const day = d3.utcDay.round(x.invert(px));
+        if (!days.length) return;
+        const dd = days[Math.max(0, Math.min(days.length - 1, d3.bisectCenter(days, day)))];
+        rule.attr('x1', x(dd)).attr('x2', x(dd)).attr('opacity', 1);
+        const parts = series.map((s) => { const pt = s.pts.find((v) => +v.date === +dd); return `${toolName(s.k)} ${nf(pt ? pt.leads : 0)}`; });
+        tip.show(e, d3.utcFormat('%b %-d, %Y')(dd), parts.join(' · '));
+      })
+      .on('mouseleave', () => { rule.attr('opacity', 0); tip.hide(); });
+    series.forEach((s) => {
+      const span = document.createElement('span'); const sw = document.createElement('span');
+      sw.className = 'lm-sw'; sw.style.background = toolColor(s.k); span.append(sw, toolName(s.k)); leg.append(span);
+    });
+  };
+
+  // Tables from the tools dataset
+  const fillTable = (id, filter) => {
+    const t = rows('tools'), p = params();
+    const table = document.getElementById(id), body = table.querySelector('tbody');
+    const fields = [...table.querySelectorAll('th')].map((th) => th.dataset.field);
+    body.replaceChildren();
+    if (!t) return;
+    TOOLS.map(([k]) => toolRow(p, k)).filter((r) => r && filter(r, p)).forEach((r) => {
+      const tr = document.createElement('tr'); tr.dataset.key = r.row_id;
+      if (p.tool !== 'all' && r.tool === p.tool) tr.className = 'lm-on';
+      fields.forEach((f) => { const td = document.createElement('td'); td.textContent = fmt(r[f], f); tr.append(td); });
+      body.append(tr);
+    });
+  };
+  const inShown = (r, p) => toolsShown(p).includes(r.tool);
+  const onPage = (r, p) => pageToolsShown(p).includes(r.tool);
+
+  const drawPrePost = () => {
+    const pp = byId('prepost'), p = params();
+    const gbox = document.getElementById('group-chart');
+    if (pp) {
+      hbars(gbox, GROUPS.map((g) => pp.get(`${p.key}|${g}`)).filter(Boolean).map((x) => ({
+        label: x.group, value: x.sales_rate || 0, color: groupColor(x.group),
+        text: x.sales_rate === null ? '—' : pf(x.sales_rate), sub: `(${nf(x.sales)} of ${nf(x.people)})`,
+      })), 'No leads in this period.');
+    } else gbox.replaceChildren();
+    const rbox = document.getElementById('reach-chart'), leg = document.getElementById('reach-legend');
+    rbox.replaceChildren(); leg.replaceChildren();
+    const t = rows('tools');
+    if (t) {
+      const rs = TOOLS.map(([k]) => toolRow(p, k)).filter((x) => x && inShown(x, p) && x.pp_people > 0);
+      const tip = tipFor(rbox);
+      const g = document.createElement('div'); g.className = 'lm-hb';
+      rs.forEach((x) => {
+        const l = document.createElement('div'); l.className = 'lm-hbl'; l.textContent = x.name;
+        const st = document.createElement('div'); st.className = 'lm-stack';
+        [[GROUPS[0], x.pre_share, x.pre], [GROUPS[1], x.first_after_share, x.first_after], [GROUPS[2], x.not_reg_share, x.not_reg]].forEach(([gname, s, n]) => {
+          if (!s) return;
+          const seg = document.createElement('div'); seg.style.width = (s * 100) + '%'; seg.style.background = groupColor(gname);
+          seg.addEventListener('mousemove', (e) => tip.show(e, x.name, `${gname}: ${pf(s)} (${nf(n)} people)`));
+          seg.addEventListener('mouseleave', () => tip.hide());
+          st.append(seg);
+        });
+        g.append(l, st);
+      });
+      if (rs.length) rbox.append(g); else { const e = document.createElement('p'); e.className = 'lm-empty'; e.textContent = 'No leads in this period.'; rbox.append(e); }
+      GROUPS.forEach((gname) => { const s = document.createElement('span'), sw = document.createElement('span'); sw.className = 'lm-sw'; sw.style.background = groupColor(gname); s.append(sw, gname); leg.append(s); });
+    }
+    fillTable('prepost-table', (r, pr) => inShown(r, pr) && r.pp_people > 0);
+  };
+
+  const drawCompare = () => {
+    const box = document.getElementById('heatmap'), t = rows('tools'), p = params();
+    box.replaceChildren();
+    if (t) {
+      const rs = TOOLS.map(([k]) => toolRow(p, k)).filter((x) => x && onPage(x, p) && x.s1 > 0);
+      if (!rs.length) { const e = document.createElement('p'); e.className = 'lm-empty'; e.textContent = NOPAGE; box.append(e); }
+      else {
+        box.style.gridTemplateColumns = `9rem repeat(5, 1fr)`;
+        box.append(document.createElement('div'), ...STAGES.slice(1).map((s) => { const h = document.createElement('div'); h.className = 'lm-hmh'; h.textContent = s; return h; }));
+        const tip = tipFor(box.parentElement.parentElement.classList.contains('lm-card') ? box.parentElement : box);
+        rs.forEach((x) => {
+          const l = document.createElement('div'); l.className = 'lm-hmr'; l.textContent = x.name; box.append(l);
+          for (let i = 2; i <= 6; i++) {
+            const v = x['r' + i], c = document.createElement('div'); c.className = 'lm-hmc';
+            c.textContent = v === null || v === undefined ? '—' : pf0(v);
+            const pctv = v === null || v === undefined ? 0 : Math.round(v * 100);
+            c.style.background = `color-mix(in srgb, ${dash.colors[0]} ${Math.max(8, pctv)}%, var(--color-bg))`;
+            c.style.color = pctv > 55 ? 'var(--color-bg)' : 'var(--color-fg)';
+            c.addEventListener('mousemove', (e) => tip.show(e, `${x.name} · ${STAGES[i - 1]}`, `${c.textContent} of the step before · ${nf(x['s' + i] ?? 0)} people`));
+            c.addEventListener('mouseleave', () => tip.hide());
+            box.append(c);
+          }
+        });
+      }
+    }
+    fillTable('stage-table', onPage);
+    fillTable('backend-table', (r, pr) => inShown(r, pr) && r.leads > 0);
+  };
+
+  const drawExperience = () => {
+    const t = rows('tools'), p = params();
+    fillTable('processing-table', (r, pr) => inShown(r, pr) && r.runs > 0);
+    fillTable('repeat-table', (r, pr) => inShown(r, pr) && r.users > 0);
+    const dbox = document.getElementById('dwell-chart');
+    if (t) hbars(dbox, TOOLS.map(([k]) => toolRow(p, k)).filter((x) => x && onPage(x, p) && x.dwell !== null && x.dwell !== undefined)
+      .map((x) => ({ label: x.name, value: x.dwell, color: toolColor(x.tool), text: fmt(x.dwell, 'dwell') })), NOPAGE);
+    const f = byId('funnel'), lbox = document.getElementById('loss-chart');
+    if (f) {
+      const r = [1, 2, 3, 4, 5, 6].map((i) => f.get(`${p.key}|${i}`)).filter(Boolean);
+      const items = r.slice(1).map((x) => ({ label: `${r[x.step - 2].stage} → ${x.stage}`, value: x.lost, text: nf(x.lost) }))
+        .sort((a, b) => b.value - a.value);
+      items.forEach((d, i) => { d.color = i === 0 ? 'var(--cds-chart-status-critical)' : 'var(--cds-chart-muted)'; });
+      hbars(lbox, items, NOPAGE);
+    }
+  };
+
+  let directDim = 'ik';
+  const DDIMS = [['ik', 'IK learner'], ['contact', 'New vs known'], ['career_stage', 'Career stage'], ['job_role', 'Job role'], ['geo', 'Geo'], ['device', 'Device'], ['source', 'Source']];
+  const KINDS = ['Without using the tool', 'On the results page', 'After using the tool, elsewhere'];
+  const drawConversions = () => {
+    const p = params();
+    const cv = (dash.data('conv_v').data || {})[String(p.period)];
+    vtable(document.getElementById('conv-all'), cv && cv.table); said('conv-all-s', cv && cv.s);
+    vtable(document.getElementById('conv-attendance'), cv && cv.attendance); said('conv-attendance-s', cv && cv.attendance_s);
+    const order = (cv && cv.order) || [];
+    const R = (rows('regs_all') || []).filter((x) => x.period === p.period);
+    const sum = (arr, f) => arr.reduce((a, x) => a + (f ? f(x) : x.n), 0);
+    const toolsIn = [...new Set(R.map((x) => x.tool))];
+    const summ = toolsIn.map((t) => {
+      const rt = R.filter((x) => x.tool === t), tot = sum(rt);
+      const o = { tool: t, Registrations: tot };
+      KINDS.forEach((k) => { o[k] = sum(rt.filter((x) => x.kind === k)); });
+      o.share = tot ? o[KINDS[0]] / tot : null; o.bought = sum(rt, (x) => x.bought); o.attended = sum(rt, (x) => x.attended || 0);
+      return o;
+    }).sort((a, b) => (order.indexOf(a.tool) + 1 || 99) - (order.indexOf(b.tool) + 1 || 99));
+    gtable(document.getElementById('reg-types'), [['tool', 'Tool'], ['Registrations', 'Registrations', 'n'], ...KINDS.map((k) => [k, k, 'n']),
+      ['share', 'Without using: share', 'p'], ['attended', 'Attended a webinar', 'n'], ['bought', 'Bought afterwards', 'n']], summ, { empty: 'No tracked registrations on tool pages in this period.' });
+    const box = document.getElementById('buttons'); box.replaceChildren();
+    summ.forEach(({ tool }) => {
+      const rt = R.filter((x) => x.tool === tool), byBtn = new Map();
+      rt.forEach((x) => byBtn.set(x.button, (byBtn.get(x.button) || 0) + x.n));
+      const tot = sum(rt);
+      const wrap = document.createElement('div'); wrap.className = 'lm-fg lm-rel';
+      const h = document.createElement('h2'); h.textContent = tool; h.style.fontSize = 'var(--cds-font-size-body)';
+      const n = document.createElement('p'); n.className = 'lm-note'; n.textContent = `${nf(tot)} registrations`;
+      const inner = document.createElement('div'); inner.className = 'lm-rel'; wrap.append(h, n, inner); box.append(wrap);
+      hbars(inner, [...byBtn].sort((a, b) => b[1] - a[1]).map(([b, c]) => ({ label: b, value: c, color: dash.colors[0], text: nf(c), sub: `(${pf0(c / tot)})` })), 'None.');
+    });
+    if (!summ.length) { const e = document.createElement('p'); e.className = 'lm-empty'; e.textContent = 'No tracked registrations on tool pages in this period.'; box.append(e); }
+    hbars(document.getElementById('direct-chart'), summ.map((x) => ({ label: x.tool, value: x.share || 0, color: dash.colors[2],
+      text: pf0(x.share || 0), sub: `of ${nf(x.Registrations)} registrations` })), 'No tracked registrations in this period.');
+    const D = R.filter((x) => x.kind === KINDS[0]), dn = sum(D);
+    const dk = document.getElementById('direct-kpis'); dk.replaceChildren();
+    if (dn) {
+      const nw = sum(D.filter((x) => x.contact === 'New to IK'));
+      dk.append(kpiTile('Registered without using a tool', nf(dn)), kpiTile('Of them bought afterwards', nf(sum(D, (x) => x.bought))), kpiTile('New to IK', nf(nw), pf(nw / dn)));
+    }
+    const agg = (keys) => { const mp = new Map(); D.forEach((x) => { const k = keys.map((c) => x[c]).join('\u0001'); const o = mp.get(k) || Object.fromEntries(keys.map((c) => [c, x[c]]).concat([['People', 0], ['Bought', 0]])); o.People += x.n; o.Bought += x.bought; mp.set(k, o); }); return [...mp.values()]; };
+    gtable(document.getElementById('direct-from'), [['tool', 'Tool'], ['page', 'Page'], ['button', 'Button pressed'], ['webinar', 'Webinar type'], ['People', 'People', 'n'], ['Bought', 'Bought', 'n']],
+      agg(['tool', 'page', 'button', 'webinar']).sort((a, b) => a.tool.localeCompare(b.tool) || b.People - a.People), { empty: 'Nobody registered without using a tool in this period.' });
+    const dc = document.getElementById('direct-dim');
+    dc.replaceChildren(...DDIMS.map(([v, n]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lm-chip'; b.textContent = n;
+      b.setAttribute('aria-pressed', String(v === directDim)); b.addEventListener('click', () => { directDim = v; drawConversions(); }); return b; }));
+    const tl = [...new Set(D.map((x) => x.tool))];
+    const groups = new Map();
+    D.forEach((x) => { const o = groups.get(x[directDim]) || { group: x[directDim], 'All tools': 0, Bought: 0 }; o[x.tool] = (o[x.tool] || 0) + x.n; o['All tools'] += x.n; o.Bought += x.bought; groups.set(x[directDim], o); });
+    gtable(document.getElementById('direct-who'), [['group', DDIMS.find((d) => d[0] === directDim)[1]], ...tl.map((t) => [t, t, 'n']), ['All tools', 'All tools', 'n'], ['Bought', 'Bought afterwards', 'n']],
+      [...groups.values()].sort((a, b) => b['All tools'] - a['All tools']), { empty: 'Nobody registered without using a tool in this period.' });
+  };
+
+  // ---- generic tables for the Impact and Tool funnels tabs
+  const PCT = /^(New to IK|Registered after|Sales rate|Sales_rate|sales_rate|Registered|registered|share|repeat_share)$|≤/;
+  const MONEY = /revenue|Revenue/;
+  const cellText = (k, v, f) => {
+    if (v === null || v === undefined || v === '') return '–';
+    if (typeof v === 'string') return v;
+    if (f === 'n') return nf(Math.round(v));
+    if (f === 'p') return pf(v);
+    if (f === '$') return '$' + nf(Math.round(v));
+    if (f === '1') return v.toFixed(1);
+    if (PCT.test(k)) return pf(v);
+    if (MONEY.test(k)) return '$' + nf(Math.round(v));
+    if (/Days|avg_runs|median_span/.test(k)) return v.toFixed(1);
+    return nf(Math.round(v));
+  };
+  const gtable = (el, cols, data, opts = {}) => {
+    el.replaceChildren();
+    if (!data.length) { const e = document.createElement('p'); e.className = 'lm-empty'; e.textContent = opts.empty || 'No data for these filters.'; el.append(e); return; }
+    const t = document.createElement('table'); t.className = 'lm-gt';
+    const hr = document.createElement('tr');
+    cols.forEach(([k, lab]) => { const th = document.createElement('th'); th.textContent = lab; if ((opts.text || []).includes(k)) th.className = 'lm-txt'; hr.append(th); });
+    const thead = document.createElement('thead'); thead.append(hr); t.append(thead);
+    const tb = document.createElement('tbody');
+    data.forEach((r) => {
+      const tr = document.createElement('tr');
+      if (opts.hl && opts.hl(r)) tr.className = 'lm-on';
+      cols.forEach(([k, , f]) => { const td = document.createElement('td'); td.textContent = cellText(k, r[k], f); if ((opts.text || []).includes(k)) td.className = 'lm-txt'; tr.append(td); });
+      tb.append(tr);
+    });
+    t.append(tb); el.append(t);
+  };
+  const pick = (id, prefix) => (rows(id) || []).filter((x) => x.row_id.startsWith(prefix));
+  const kpiTile = (label, value, sub) => {
+    const d = document.createElement('div'); d.className = 'lm-kpi';
+    const a = document.createElement('span'); a.className = 'lm-kl'; a.textContent = label;
+    const b = document.createElement('span'); b.className = 'lm-kv'; b.textContent = value;
+    d.append(a, b);
+    if (sub) { const c = document.createElement('span'); c.className = 'lm-kd'; c.textContent = sub; d.append(c); }
+    return d;
+  };
+
+  let imDim = 'experience';
+  const DIMS = [['experience', 'Experience'], ['domain', 'Job area'], ['geo', 'Geo'], ['source', 'Source'], ['device', 'Device'], ['user_type', 'IK learner']];
+  const vtable = (el, t, empty) => {
+    el.replaceChildren();
+    if (!t || !t.rows || !t.rows.length) { const e = document.createElement('p'); e.className = 'lm-empty'; e.textContent = empty || 'No data for these filters.'; el.append(e); return; }
+    const tb = document.createElement('table'); tb.className = 'lm-gt';
+    const hr = document.createElement('tr');
+    t.cols.forEach((c) => { const th = document.createElement('th'); th.textContent = c; hr.append(th); });
+    const th0 = document.createElement('thead'); th0.append(hr); tb.append(th0);
+    const body = document.createElement('tbody');
+    t.rows.forEach((r) => { const tr = document.createElement('tr'); r.forEach((v) => { const td = document.createElement('td'); td.textContent = typeof v === 'number' ? nf(v) : v; tr.append(td); }); body.append(tr); });
+    tb.append(body); el.append(tb);
+  };
+  const said = (id, text) => { const el = document.getElementById(id); el.replaceChildren(); if (text) { const b = document.createElement('b'); b.textContent = 'What it means: '; el.append(b, text); } };
+  const drawImpact = () => {
+    const p = params();
+    const sh = (dash.data('impact_share_v').data || {})[String(p.period)];
+    const k = document.getElementById('im-kpis'); k.replaceChildren();
+    if (sh) {
+      const q = sh.kpis;
+      k.append(kpiTile('All IK sales', q['All IK sales']), kpiTile('Bought after using a career tool', q['Bought after using a career tool'], q['Bought after using a career tool (share)']),
+        kpiTile('Revenue from those buyers', q['Revenue from those buyers'], q['Revenue from those buyers (share)']), kpiTile('All IK net revenue', q['All IK net revenue']));
+    }
+    said('im-share-s', sh && sh.s); vtable(document.getElementById('im-share-tool'), sh && sh.table);
+    const v = (dash.data('impact_v').data || {})[p.key];
+    [['value', 'im-value'], ['known', 'im-known'], ['multi', 'im-multi']].forEach(([key, el]) => { vtable(document.getElementById(el), v && v[key]); said(el + '-s', v && v[key + '_s']); });
+    vtable(document.getElementById('im-cohort'), (dash.data('impact_cohort_v').data || {})[`${p.tool}|${p.fk}`]);
+    const tbox = document.getElementById('im-time'); tbox.replaceChildren();
+    const tt = v && v.time;
+    [['Registrations', dash.colors[0]], ['Sales', dash.colors[1]]].forEach(([key, color]) => {
+      const w = document.createElement('div'); w.className = 'lm-fg lm-rel';
+      const h = document.createElement('h2'); h.textContent = key; h.style.fontSize = 'var(--cds-font-size-body)';
+      const inner = document.createElement('div'); inner.className = 'lm-rel'; w.append(h, inner); tbox.append(w);
+      const ci = tt ? tt.cols.indexOf(key) : -1;
+      hbars(inner, tt ? tt.rows.map((r) => ({ label: r[0], value: r[ci] || 0, color, text: nf(r[ci] || 0) })) : [], 'No data for these filters.');
+    });
+    said('im-time-s', v && v.time_s);
+    const dc = document.getElementById('im-dim');
+    dc.replaceChildren(...DIMS.map(([val, n]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lm-chip';
+      b.textContent = n; b.setAttribute('aria-pressed', String(val === imDim)); b.addEventListener('click', () => { imDim = val; drawImpact(); }); return b; }));
+    vtable(document.getElementById('im-who'), (dash.data('impact_who_v').data || {})[`${p.period}|${p.tool}|${imDim}`]);
+  };
+
+  let fzTool = 'ats';
+  const drawToolFunnels = () => {
+    const p = params(), specs = rows('fz_specs') || [];
+    const spec = specs.find((x) => x.key === fzTool) || specs[0];
+    const pc = document.getElementById('fz-pick');
+    pc.replaceChildren(...specs.map((x) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lm-chip';
+      b.textContent = x.name; b.setAttribute('aria-pressed', String(x.key === fzTool)); b.addEventListener('click', () => { fzTool = x.key; drawToolFunnels(); }); return b; }));
+    if (!spec) return;
+    const r = pick('fz_rows', `${p.period}|${spec.key}|`);
+    const segs = spec.ik_split ? ['All', 'IK learner', 'Non-IK'] : ['All'];
+    const val = (metric) => { const x = r.find((y) => y.metric === metric); return x ? x.All : undefined; };
+    const head = [['Opened the tool', 'Opened the tool (unique visitors)'], ['Completed set-up', 'Completed set-up and clicked Start'], ['Uploaded a resume', 'Uploaded a resume'],
+      ['Reached results', 'Reached the results page'], ['Registered after visiting', 'Submitted a webinar registration after visiting'], ['Bought after visiting', 'Bought a program after visiting']];
+    const k = document.getElementById('fz-kpis'); k.replaceChildren(...head.filter(([, mt]) => val(mt) !== undefined).map(([lab, mt]) => kpiTile(lab, cellText('x', val(mt)))));
+    document.getElementById('fz-ik').textContent = spec.ik_split ? `IK learner = ${spec.ik_split.toLowerCase()}. Columns split every number by that.` : '';
+    const sec = document.getElementById('fz-sections'); sec.replaceChildren();
+    [...new Set(r.map((x) => x.section))].forEach((name) => {
+      const card = document.createElement('div'); card.className = 'lm-card';
+      const h = document.createElement('h2'); h.textContent = name;
+      const box = document.createElement('div'); box.className = 'lm-tbl';
+      card.append(h, box); sec.append(card);
+      gtable(box, [['metric', 'Metric'], ...segs.map((x) => [x, x]), ['note', "How it's measured"]], r.filter((x) => x.section === name), { text: ['metric', 'note'] });
+    });
+    const bcols = [['button', 'Button'], ...segs.flatMap((x) => [[`${x}: clicked`, `${x}: clicked`], [`${x}: registered after`, `${x}: registered after`]]), ['click_ids', 'Tracked click IDs']];
+    gtable(document.getElementById('fz-buttons'), bcols, pick('fz_buttons', `${p.period}|${spec.key}|`), { text: ['button', 'click_ids'], empty: 'No buttons listed for this tool.' });
+    gtable(document.getElementById('fz-programs'), [['program', 'Program'], ['buyers', 'Buyers'], ['net_revenue', 'Net revenue']], pick('fz_programs', `${p.period}|${spec.key}|`), { text: ['program'], empty: 'No traced purchases in this period.' });
+    const gaps = document.getElementById('fz-gaps'); gaps.replaceChildren(...(spec.not_tracked || []).map((t) => { const li = document.createElement('li'); li.textContent = t; return li; }));
+    document.getElementById('fz-gaps-card').hidden = !(spec.not_tracked || []).length;
+    [['fz-before-use', 'fz_before_use'], ['fz-before-reg', 'fz_before_reg']].forEach(([el, id]) => {
+      const rs = pick(id, p.period + '|');
+      const others = [...new Set(rs.flatMap((x) => Object.keys(x)))].filter((c) => !['row_id', 'tool', 'People', 'Used another tool before'].includes(c));
+      gtable(document.getElementById(el), [['tool', 'Tool'], ['People', 'People', 'n'], ['Used another tool before', 'Used another tool before', 'n'], ...others.map((c) => [c, c, 'n'])], rs);
+    });
+    const jr = (dash.data('journeys').data || {})[String(p.period)];
+    const jk = document.getElementById('fz-j-kpis'); jk.replaceChildren();
+    if (jr) jk.append(kpiTile('Registrants', nf(jr.registrants)), kpiTile('Used one tool, then registered', nf(jr.one)),
+      kpiTile('Used 2+ tools before registering', nf(jr.multi), jr.registrants ? pf(jr.multi / jr.registrants) : ''));
+    vtable(document.getElementById('fz-journeys'), jr && jr.table, 'No registrations after a career tool in this period.');
+    gtable(document.getElementById('fz-repeat'), [['tool', 'Tool'], ['people', 'People', 'n'], ['repeat_people', 'Used it again', 'n'], ['repeat_share', 'Share', 'p'],
+      ['same_resume_only', 'Same resume only', 'n'], ['different_resumes', 'Different resumes', 'n'], ['avg_resumes_repeaters', 'Avg resumes (repeaters)', '1'],
+      ['max_resumes', 'Most resumes by one person', 'n'], ['people_4plus_resumes', 'People with 4+ resumes', 'n'], ['avg_runs_repeaters', 'Avg runs (repeaters)', '1'],
+      ['same_day', 'Within a day', 'n'], ['within_week', 'Within a week', 'n'], ['later', 'After a week+', 'n'], ['median_span_days', 'Typical span (days)', '1']], pick('fz_repeat', p.period + '|'));
+  };
+
+  const RATE_COLS = [['People', 'People', 'n'], ['Share', 'Share', 'p'], ['Registered', 'Registered', 'n'], ['Registration_rate', 'Registration rate', 'p'],
+    ['Bought', 'Bought', 'n'], ['Sales_rate', 'Sales rate', 'p'], ['Revenue', 'Revenue', '$']];
+  let psTool = 'resume';
+  const drawPersonas = () => {
+    const p = params(), pre = p.period + '|';
+    const lb = pick('ps_leader', pre);
+    gtable(document.getElementById('ps-leader'), [['tool', 'Lead magnet'], ['People', 'Leads', 'n'], ['Registered', 'Registered', 'n'], ['Registration_rate', 'Registration rate', 'p'],
+      ['Bought', 'Bought', 'n'], ['Sales_rate', 'Sales rate', 'p'], ['Revenue', 'Revenue', '$'], ['Revenue_per_lead', 'Revenue per lead', '$'], ['Sales_share', 'Sales share', 'p']], lb);
+    const bars = document.getElementById('ps-leader-bars'); bars.replaceChildren();
+    [['Registered', 'Registrations', dash.colors[0]], ['Bought', 'Sales', dash.colors[1]]].forEach(([key, lab, color]) => {
+      const w = document.createElement('div'); w.className = 'lm-fg lm-rel';
+      const h = document.createElement('h2'); h.textContent = lab; h.style.fontSize = 'var(--cds-font-size-body)';
+      const inner = document.createElement('div'); inner.className = 'lm-rel'; w.append(h, inner); bars.append(w);
+      hbars(inner, [...lb].sort((a, b) => (b[key] || 0) - (a[key] || 0)).map((x) => ({ label: x.tool, value: x[key] || 0, color, text: nf(x[key] || 0) })), 'No data.');
+    });
+    gtable(document.getElementById('ps-framework'), [['Lead magnet', 'Lead magnet'], ['Its job', 'Its job'], ['North-star metric', 'North-star metric'], ['Supporting metrics', 'Supporting metrics'],
+      ['Guardrails', 'Guardrails'], ['Leads', 'Leads', 'n'], ['Registration rate', 'Registration rate', 'p'], ['Sales rate', 'Sales rate', 'p'], ['Revenue per lead', 'Revenue per lead', '$'],
+      ['New to IK', 'New to IK', 'p'], ['Processing p95 (s)', 'Processing p95 (s)', '1']], pick('ps_framework', pre), { text: ['Its job', 'Supporting metrics', 'Guardrails'] });
+    const pc = document.getElementById('ps-pick');
+    pc.replaceChildren(...TOOLS.map(([k, n]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'lm-chip';
+      b.textContent = n; b.setAttribute('aria-pressed', String(k === psTool)); b.addEventListener('click', () => { psTool = k; drawPersonas(); }); return b; }));
+    const tp = `${p.period}|${psTool}|`;
+    const sm = (rows('ps_summary') || []).find((x) => x.row_id === `${p.period}|${psTool}`);
+    document.getElementById('ps-summary').textContent = sm ? sm.text : 'No leads for this tool in this period.';
+    gtable(document.getElementById('ps-top'), [['career_stage', 'Career stage'], ['domain', 'Job area'], ['user_type', 'IK status'], ...RATE_COLS], pick('ps_top', tp));
+    [['career_stage', 'Career stage'], ['domain', 'Job area'], ['user_type', 'User'], ['geo', 'Geo'], ['visits', 'Active on']].forEach(([dim, lab]) => {
+      gtable(document.getElementById('ps-b-' + dim), [['group', lab], ...RATE_COLS], pick('ps_breakdown', `${tp}${dim}|`));
+    });
+    gtable(document.getElementById('ps-other'), [['other', 'Tool'], ['People', 'People', 'n'], ['Share of returning users', 'Share of returning users', 'p']], pick('ps_other', tp), { empty: 'No returning users used another tool.' });
+    const fq = (rows('ps_frequent') || []).find((x) => x.row_id === String(p.period));
+    const fk2 = document.getElementById('ps-freq-kpis'); fk2.replaceChildren();
+    if (fq) fk2.append(kpiTile('Frequent users', nf(fq.frequent), fq.people ? pf(fq.frequent / fq.people) + ' of all people' : ''),
+      kpiTile('Of them registered', nf(fq.registered), fq.frequent ? pf(fq.registered / fq.frequent) : ''),
+      kpiTile('Of them bought', nf(fq.bought), fq.frequent ? pf(fq.bought / fq.frequent) : ''));
+    ['career_stage', 'domain'].forEach((dim) => gtable(document.getElementById('ps-freq-' + dim), [['group', dim === 'domain' ? 'Job area' : 'Career stage'], ...RATE_COLS], pick('ps_frequent_breakdown', `${p.period}|${dim}|`)));
+  };
+
+  let notesLoaded = false;
+  const drawNotes = () => {
+    if (notesLoaded) return;
+    notesLoaded = true;
+    fetch('data_notes.html').then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then((h) => { document.getElementById('data-notes').innerHTML = h; })
+      .catch(() => { notesLoaded = false; document.getElementById('data-notes').textContent = 'Data notes failed to load. Reload the page to try again.'; });
+  };
+
+  const drawTab = () => {
+    ({ overview: () => { drawFunnel(); drawDaily(); }, 'pre-post': drawPrePost, compare: drawCompare,
+       experience: drawExperience, conversions: drawConversions, impact: drawImpact, personas: drawPersonas, 'tool-funnels': drawToolFunnels, about: drawNotes })[tab]();
+  };
+
+  const fillThrough = () => {
+    const el = root.querySelector('[data-field="through"]');
+    if (!el) return;
+    const r = (byId('kpis') || new Map()).get('30|all|all|all|all|all');
+    el.textContent = r && r.through ? r.through : '—';
+  };
+
+  dash.onData(() => {
+    drawFilters();
+    fillKpis();
+    fillThrough();
+    drawTab();
+  });
+
+  const named = document.getElementById(location.hash.slice(1));
+  show(named && named.dataset.tab ? named.dataset.tab : 'overview');
+})();
+</script>
+
+
+</body></html>
