@@ -1,0 +1,523 @@
+<h2>Sources of truth</h2>
+<p>Everything on this dashboard comes from BigQuery project <strong><code>ik-marketing-data</code></strong>, read with SELECT queries only (nothing is written back). The queries run in the scripts below, and their results are saved as local files that the dashboard reads. Emails are turned into a one-way hash inside BigQuery before they leave, so no names, emails or phone numbers are stored locally.</p>
+<h3>BigQuery tables</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Table</th>
+<th>What the dashboard uses it for</th>
+<th>Columns used</th>
+<th>Filters applied</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>Marketing_data_new_logic.lead_magnet_clickstream_master</code> (view)</td>
+<td>On-page funnel (Overview, Compare tools, Experience, Conversions): opened, uploaded, submitted, saw report, clicked register, registered; buttons; report time; felt wait</td>
+<td><code>key, student_uuid, session_id, act_timestamp, act_date, ClickID, landing_page, page_value_url, session_device, session_country, channel, hs_id, lead_magnet_type, business_unit</code></td>
+<td>Last 180 days; production hosts only (<code>interviewkickstart.com</code>, <code>ikiq.interviewkickstart.com</code>, <code>in.interviewkickstart.com</code>); staging, localhost, Dexity and proxy mirrors removed</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>Tech_ML_Projects.Resume Analysis - GQL data</code></td>
+<td>Leads (people who gave contact details), lead date, experience, job area, country, UTM source</td>
+<td><code>uuid, session_id, lead_magnet, created_at, hubspot_id, country, utm_source, utm_medium, experience, domain, email</code> (hashed)</td>
+<td>Last 180 days; emails containing "test" removed; HubSpot test leads removed</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>Tech_ML_Projects.Resume Analysis</code></td>
+<td>System processing time, repeat use (runs per person, same vs different resume), device for backend metrics</td>
+<td><code>uuid, session_id, lead_magnet, created_at, client_type, hubspot_id, response_time_in_seconds, email</code> (hashed), <code>resume_text</code> (only an MD5 hash)</td>
+<td>Last 180 days; <code>client_type = 'sandbox'</code> removed</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>Sales_Dashboard.contacts</code></td>
+<td>Webinar registration history, IK learner flag, test-lead flag, contact creation date (new vs already known)</td>
+<td><code>contact_id, created_at, latest_gql_date, gql_date, is_candidate_alum_final, test_lead, row_added_at</code></td>
+<td>Only contacts seen in tables 1–3. Registration dates = every distinct <code>latest_gql_date</code> over all daily snapshots. Other flags = the latest snapshot</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>Marketing_data_new_logic.Finance_Net_Revenue</code></td>
+<td>Sales and net revenue</td>
+<td><code>Hubspot_Id, email</code> (hashed), <code>sale_date, program_name, net_revenue, new_alumni</code></td>
+<td>All rows; one sale = HubSpot ID (or email) + sale date + program</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>Marketing_data_new_logic.all_clickstream_data</code></td>
+<td>Tool funnels tab: every click on tool pages, including ATS, FDE and Mock Interview, which table 1 leaves out</td>
+<td><code>student_uuid, fingerprint_id, ClickID, page_value_url, timestamp</code></td>
+<td>Last 180 days; tool pages only; production hosts only</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>Marketing_data_new_logic.Leads_Click_history</code></td>
+<td>Tool funnels tab: page visits (steps <code>s0</code>, <code>s1</code>) and webinar registration form submissions (step <code>s4</code>)</td>
+<td><code>User_ID, Lead_Created_Time, step, Page_URL, CTA_Page, Device, Country, UTM_Source, UTM_Medium, Webinar_Type, Lead_Email</code> (hashed)</td>
+<td>Last 180 days; visits on tool pages; registration forms only for people who touched a tool page</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>Webinar_analytics.webinar_attendee_data_from_zoom</code></td>
+<td>Webinar attendance after registering: attended, stayed 30+ minutes, which webinar</td>
+<td><code>hubspot_id, user_email</code> (hashed), <code>webinar_uuid, webinar_topic, webinar_country, webinar_start_time, join_time, duration</code></td>
+<td>Webinars from 180 days back (+7 days); time summed per person per webinar over rejoins</td>
+</tr>
+</tbody>
+</table>
+<p>Tables checked and <strong>not</strong> used, with the reason:</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Why not</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Marketing_data_new_logic.BQ_Sale</code></td>
+<td>Stops in April 2026 even though it is still being modified</td>
+</tr>
+<tr>
+<td><code>Hubspot_db.Sales_automated_tech</code></td>
+<td>No deposits recorded between May and August 2026</td>
+</tr>
+<tr>
+<td><code>Tech_ML_Projects.Resume Analysis - Webinar Registration</code></td>
+<td>Stops on 3 May 2026</td>
+</tr>
+<tr>
+<td><code>Marketing_data_new_logic.resume_analyzer_LM</code> (view)</td>
+<td>Labels the backend codes differently from the pages (see Tool names)</td>
+</tr>
+<tr>
+<td><code>Sales_Dashboard.contacts.is_webinar_attended</code></td>
+<td>False for every lead; attendance comes from Zoom (table 8) instead</td>
+</tr>
+<tr>
+<td><code>Sales_Dashboard.contacts.gql_date</code></td>
+<td>Empty for about 94% of contacts</td>
+</tr>
+</tbody>
+</table>
+<h3>Tool names: page ↔ backend code</h3>
+<p>Verified by matching each page's submit click to the backend analysis row it created seconds later.</p>
+<table>
+<thead>
+<tr>
+<th>Dashboard name</th>
+<th>Page</th>
+<th>Backend <code>lead_magnet</code></th>
+<th>Data available</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Resume Analyzer</td>
+<td><code>ikiq.interviewkickstart.com/resume-analysis</code></td>
+<td><code>IKIQ</code></td>
+<td>Clicks, visits, backend, HubSpot, finance</td>
+</tr>
+<tr>
+<td>Salary Analyzer</td>
+<td><code>interviewkickstart.com/ai-salary-analyzer</code> → <code>/result-ai-salary</code></td>
+<td><code>SALARY_INSIGHT</code></td>
+<td>Clicks, visits, backend, HubSpot, finance</td>
+</tr>
+<tr>
+<td>AI Quotient</td>
+<td><code>interviewkickstart.com/ai-quotient-analyzer</code> → <code>/result-ai-quotient-analyzer</code></td>
+<td><code>RESUME_ANALYSIS_SU</code></td>
+<td>Clicks, visits, backend, HubSpot, finance</td>
+</tr>
+<tr>
+<td>FDE Gap Analyzer</td>
+<td><code>dexity.com/career-tools/fde-readiness-analyser</code> → <code>fde-score.dexity.com/results</code></td>
+<td><code>FDE_READINESS</code></td>
+<td>Clicks (few), visits, backend, HubSpot, finance</td>
+</tr>
+<tr>
+<td>ATS Resume Checker</td>
+<td><code>interviewkickstart.com/ats-resume-checker</code>, <code>dexity.com/career-tools/ats-resume-checker</code></td>
+<td>none</td>
+<td>Clicks, visits, registration forms, finance</td>
+</tr>
+<tr>
+<td>AI Mock Interview</td>
+<td><code>interviewkickstart.com/ai-mockinterview</code>, <code>/ai-mock-interview-test-page</code></td>
+<td>none</td>
+<td>Clicks, visits, registration forms, finance; not the interview app on <code>mi.dexity.com</code></td>
+</tr>
+<tr>
+<td><em>Not included:</em> Expert Insights, Career Ops, AI Roadmap</td>
+<td>—</td>
+<td><code>EXPERT_INSIGHTS</code>, <code>CAREER_OPS</code>, <code>AI_ROADMAP</code></td>
+<td>Left out on purpose: they aren't career tools. <code>EXPERT_INSIGHTS</code> is the resume upload people do after registering for a webinar (see view <code>Marketing_data_new_logic.funnel_resume_upload_expert_insights</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3>How the tables are joined</h3>
+<table>
+<thead>
+<tr>
+<th>From</th>
+<th>To</th>
+<th>Key</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leads (2)</td>
+<td>Analyses (3)</td>
+<td><code>uuid</code></td>
+<td>Got a report; device</td>
+</tr>
+<tr>
+<td>Leads (2)</td>
+<td>HubSpot (4)</td>
+<td><code>hubspot_id</code> = <code>contact_id</code></td>
+<td>Registrations, IK learner, new vs known. 25% of leads have no HubSpot ID and count as "not registered"</td>
+</tr>
+<tr>
+<td>Leads (2)</td>
+<td>Sales (5)</td>
+<td><code>hubspot_id</code> = <code>Hubspot_Id</code>, else hashed email</td>
+<td></td>
+</tr>
+<tr>
+<td>Clickstream (1)</td>
+<td>HubSpot (4)</td>
+<td><code>hs_id</code></td>
+<td>Only about 6% of visitors are identified</td>
+</tr>
+<tr>
+<td>Tool clicks (6)</td>
+<td>Visits and registration forms (7)</td>
+<td><code>student_uuid</code> = <code>User_ID</code></td>
+<td>Same browser ID. The <code>ikiq.</code> subdomain gives visitors a different ID, so the registration-form link is weaker there</td>
+</tr>
+<tr>
+<td>Registration forms (7)</td>
+<td>Sales (5)</td>
+<td>hashed email</td>
+<td>Sales are traced only for people who registered</td>
+</tr>
+<tr>
+<td>Clickstream (1, 6)</td>
+<td>Backend (2, 3)</td>
+<td>none</td>
+<td>Different IDs, so page counts and backend counts are shown side by side, never mixed in one funnel</td>
+</tr>
+</tbody>
+</table>
+<h3>Metric dictionary</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Definition</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opened the tool</td>
+<td>Unique people with any event in a tool session (Overview); or anyone who visited or clicked the tool page (Tool funnels)</td>
+<td>1; 6 + 7</td>
+</tr>
+<tr>
+<td>Uploaded a resume</td>
+<td>Upload click, or a later step (submit, report), which needs an upload</td>
+<td>1; 6</td>
+</tr>
+<tr>
+<td>Submitted for analysis</td>
+<td>Final submit click (Resume Analyzer: the target-role step)</td>
+<td>1; 6</td>
+</tr>
+<tr>
+<td>Saw the report / reached results</td>
+<td>A results page event or visit</td>
+<td>1; 6 + 7</td>
+</tr>
+<tr>
+<td>Clicked register</td>
+<td>A registration button after the report</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Registered (on page)</td>
+<td>Registration form step after the report</td>
+<td>1; 6</td>
+</tr>
+<tr>
+<td>Registered without using the tool</td>
+<td>Registration before any upload in that visit</td>
+<td>1; 6</td>
+</tr>
+<tr>
+<td>Leads captured</td>
+<td>Unique emails per tool in the period</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Registered for webinar (after the tool)</td>
+<td>A HubSpot registration date on or after the lead date</td>
+<td>2 + 4</td>
+</tr>
+<tr>
+<td>Registered before / first registered after / not registered</td>
+<td>Registration dates compared with the lead date; one group per person, checked in that order</td>
+<td>2 + 4</td>
+</tr>
+<tr>
+<td>Sales after the tool</td>
+<td>A sale on or after the lead date, up to the data date</td>
+<td>2 + 5</td>
+</tr>
+<tr>
+<td>Net revenue</td>
+<td>Finance <code>net_revenue</code> of those sales</td>
+<td>5</td>
+</tr>
+<tr>
+<td>Bought before the tool</td>
+<td>A sale before the lead date</td>
+<td>2 + 5</td>
+</tr>
+<tr>
+<td>New to IK</td>
+<td>HubSpot contact created on or after the lead time (1-hour tolerance)</td>
+<td>2 + 4</td>
+</tr>
+<tr>
+<td>Share of all IK sales touched</td>
+<td>Sales in the period whose buyer had any lead-magnet lead on or before the sale date</td>
+<td>5 + 2</td>
+</tr>
+<tr>
+<td>Monthly cohort rates</td>
+<td>Share of a lead month that registered or bought within 30, 60 or 90 days; blank until the window has fully passed</td>
+<td>2 + 4 + 5</td>
+</tr>
+<tr>
+<td>System processing time</td>
+<td><code>response_time_in_seconds</code>, median (typical) and 95th percentile (slowest 5%)</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Felt wait</td>
+<td>Last submit click to the first report event</td>
+<td>1; 6</td>
+</tr>
+<tr>
+<td>Time on report / results page</td>
+<td>First to last tracked moment on the results page; a lower bound</td>
+<td>1; 6 + 7</td>
+</tr>
+<tr>
+<td>Repeat use</td>
+<td>Runs per person (one run = one resume within 10 minutes); span = first to last run</td>
+<td>3; 6</td>
+</tr>
+<tr>
+<td>IK learner</td>
+<td>HubSpot <code>is_candidate_alum_final</code> (backend metrics); "I'm an IK learner" toggle (ATS); Sign in (Mock Interview)</td>
+<td>4; 6</td>
+</tr>
+<tr>
+<td>Ranking by registrations</td>
+<td>Lead magnets sorted by people who registered on or after their lead date, then by sales</td>
+<td>2 + 4 + 5</td>
+</tr>
+<tr>
+<td>Sales share</td>
+<td>A tool's share of all sales that followed a lead magnet (a person who used two tools counts for both)</td>
+<td>2 + 5</td>
+</tr>
+<tr>
+<td>Career stage</td>
+<td>Experience answer grouped: Early 0–4, Mid 5–10, Senior 9–20, Very senior 20+ years. Used instead of age, which no tool collects</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Profession (job area)</td>
+<td>The <code>domain</code> answer on the lead form</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Comes back / active days</td>
+<td>Distinct days a person (email) had a lead or an analysis on any lead magnet since 18 Apr 2026: one day, 2–3 days, 4+ days</td>
+<td>2 + 3</td>
+</tr>
+<tr>
+<td>Frequent users</td>
+<td>People active on 4+ different days</td>
+<td>2 + 3</td>
+</tr>
+<tr>
+<td>Persona</td>
+<td>Career stage × job area × IK status; the most common combinations per tool, with their registration and sales rates</td>
+<td>2 + 4 + 5</td>
+</tr>
+<tr>
+<td>Tools used before</td>
+<td>For each tool, people whose earlier lead (or earlier than their registration) was on another named tool</td>
+<td>2 (+ 4)</td>
+</tr>
+<tr>
+<td>Same vs different resume</td>
+<td>Repeat users whose runs all used one file (by MD5 of the resume text) vs two or more files</td>
+<td>3</td>
+</tr>
+<tr>
+<td>North star / guardrails</td>
+<td>The product framework in Personas &amp; ranking: one success metric per tool and what must not get worse</td>
+<td>Definitions, values from 2–5</td>
+</tr>
+<tr>
+<td>Registration type (Conversions)</td>
+<td>Each registration click on a tracked tool page: without using the tool (before any upload or start), on the results page, or after using the tool elsewhere</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Where they registered from</td>
+<td>The page of the registration, the last registration button before it, and the webinar type on the matching registration form (within a day)</td>
+<td>6 + 7</td>
+</tr>
+<tr>
+<td>Who registered</td>
+<td>HubSpot profile matched on hashed email from the registration form (IK learner, new vs known, experience, job role, country), plus device and source from their first visit</td>
+<td>7 + 4</td>
+</tr>
+<tr>
+<td>Attended the webinar</td>
+<td>Joined a Zoom webinar that started on or after the registration date (matched on HubSpot ID or hashed email)</td>
+<td>8 + 4 or 7</td>
+</tr>
+<tr>
+<td>Stayed 30+ minutes</td>
+<td>Total time in one webinar, summed over rejoins, of 30 minutes or more</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Bought: attendees vs didn't attend</td>
+<td>Sales after the tool among registrants who attended vs registrants who didn't</td>
+<td>8 + 5</td>
+</tr>
+<tr>
+<td>Button clicks</td>
+<td>Unique people clicking the listed click IDs (shown next to each button)</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Registered after a button</td>
+<td>A registration form or tracked registration click at or after the button click</td>
+<td>6 + 7</td>
+</tr>
+</tbody>
+</table>
+<h3>Local files and how to refresh them</h3>
+<table>
+<thead>
+<tr>
+<th>File in <code>data/</code></th>
+<th>Made by</th>
+<th>Approx. scan</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>events.parquet</code>, <code>analyses.parquet</code>, <code>leads.parquet</code>, <code>sales.parquet</code>, <code>hubspot.parquet</code>, <code>regs.parquet</code>, <code>attendance.parquet</code></td>
+<td><code>uv run python scripts/extract.py 180</code></td>
+<td>25 GB</td>
+</tr>
+<tr>
+<td><code>raw/tool_events.parquet</code></td>
+<td><code>uv run python -m scripts.extract_raw_tools</code></td>
+<td>6 GB</td>
+</tr>
+<tr>
+<td><code>raw/tool_visits.parquet</code>, <code>raw/tool_regs.parquet</code>, <code>raw/tool_reg_contacts.parquet</code></td>
+<td><code>uv run python -m scripts.extract_funnels</code></td>
+<td>15 GB</td>
+</tr>
+</tbody>
+</table>
+<p>Run them from <code>~/lead-magnet-dashboard</code>, then reload the dashboard. All metrics are computed in <code>lm/metrics.py</code>, <code>lm/funnels.py</code> and <code>lm/impact.py</code>.</p>
+<h3>Check a number yourself</h3>
+<p>Paste these into the BigQuery console. Change the dates to the dashboard's period; it ends on the data date shown at the top. Small differences come from rows added after the last extract.</p>
+<p><strong>Leads per tool</strong> (matches "Leads captured"):</p>
+<pre><code class="language-sql">WITH leads AS (
+  SELECT lead_magnet, LOWER(TRIM(email)) AS email, hubspot_id
+  FROM `ik-marketing-data.Tech_ML_Projects.Resume Analysis - GQL data`
+  WHERE DATE(created_at) BETWEEN '2026-09-17' AND '2026-10-16' AND NOT LOWER(email) LIKE '%test%'),
+test_contacts AS (
+  SELECT contact_id FROM (
+    SELECT contact_id, test_lead, ROW_NUMBER() OVER (PARTITION BY contact_id ORDER BY row_added_at DESC) rn
+    FROM `ik-marketing-data.Sales_Dashboard.contacts`
+    WHERE contact_id IN (SELECT hubspot_id FROM leads)) WHERE rn = 1 AND LOWER(test_lead) = 'true')
+SELECT lead_magnet, COUNT(DISTINCT email) AS people
+FROM leads WHERE hubspot_id IS NULL OR hubspot_id NOT IN (SELECT contact_id FROM test_contacts)
+GROUP BY 1 ORDER BY 2 DESC
+</code></pre>
+<p><strong>System processing time per tool:</strong></p>
+<pre><code class="language-sql">SELECT lead_magnet, COUNT(*) AS runs,
+  APPROX_QUANTILES(response_time_in_seconds, 100)[OFFSET(50)] AS typical_s,
+  APPROX_QUANTILES(response_time_in_seconds, 100)[OFFSET(95)] AS slowest_5pct_s
+FROM `ik-marketing-data.Tech_ML_Projects.Resume Analysis`
+WHERE DATE(created_at) BETWEEN '2026-09-17' AND '2026-10-16' AND IFNULL(client_type, '') != 'sandbox'
+GROUP BY 1 ORDER BY 2 DESC
+</code></pre>
+<p><strong>One person's webinar registration dates</strong> (put in a HubSpot ID):</p>
+<pre><code class="language-sql">SELECT DISTINCT latest_gql_date AS registered_on
+FROM `ik-marketing-data.Sales_Dashboard.contacts`
+WHERE contact_id = '&lt;HubSpot ID&gt;' AND latest_gql_date IS NOT NULL
+ORDER BY 1
+</code></pre>
+<p><strong>One person's purchases:</strong></p>
+<pre><code class="language-sql">SELECT DATE(sale_date) AS sale_date, program_name, net_revenue
+FROM `ik-marketing-data.Marketing_data_new_logic.Finance_Net_Revenue`
+WHERE CAST(Hubspot_Id AS STRING) = '&lt;HubSpot ID&gt;' OR LOWER(TRIM(email)) = '&lt;email&gt;'
+ORDER BY 1
+</code></pre>
+<p><strong>All IK sales in a period</strong> (the base for "share of all IK sales"):</p>
+<pre><code class="language-sql">SELECT COUNT(DISTINCT CONCAT(IFNULL(CAST(Hubspot_Id AS STRING), LOWER(TRIM(email))), '|',
+         CAST(DATE(sale_date) AS STRING), '|', IFNULL(program_name, ''))) AS sales
+FROM `ik-marketing-data.Marketing_data_new_logic.Finance_Net_Revenue`
+WHERE DATE(sale_date) BETWEEN '2026-07-19' AND '2026-10-16'
+</code></pre>
+<p><strong>People clicking a button on a tool page</strong> (Tool funnels → Buttons; swap in the click ID and page):</p>
+<pre><code class="language-sql">SELECT COUNT(DISTINCT student_uuid) AS people
+FROM `ik-marketing-data.Marketing_data_new_logic.all_clickstream_data`
+WHERE ClickID = 'ra-result-cta-book-session'
+  AND REGEXP_CONTAINS(LOWER(page_value_url), r'ikiq\.interviewkickstart\.com/resume-analysis/results')
+  AND SAFE_CAST(timestamp AS INT64) &gt;= UNIX_MILLIS(TIMESTAMP('2026-04-20'))
+</code></pre>
+<p><strong>Unique visitors to a tool page</strong> (Tool funnels → Opened the tool, visits part):</p>
+<pre><code class="language-sql">SELECT COUNT(DISTINCT User_ID) AS visitors
+FROM `ik-marketing-data.Marketing_data_new_logic.Leads_Click_history`
+WHERE step IN ('s0', 's1') AND Lead_Created_Time &gt;= TIMESTAMP('2026-04-20')
+  AND REGEXP_CONTAINS(LOWER(Page_URL), r'interviewkickstart\.com/ats-resume-checker')
+</code></pre>
+<p><strong>On-page funnel step counts</strong> (Overview funnel; one tool):</p>
+<pre><code class="language-sql">SELECT ClickID, COUNT(DISTINCT student_uuid) AS people
+FROM `ik-marketing-data.Marketing_data_new_logic.lead_magnet_clickstream_master`
+WHERE act_date BETWEEN '2026-09-17' AND '2026-10-16' AND lead_magnet_type = 'Salary Analyzer'
+  AND business_unit != 'Internal - Non-Prod'
+GROUP BY 1 ORDER BY 2 DESC
+</code></pre>
+<h3>Known gaps</h3>
+<ul>
+<li><strong>Not tracked in BigQuery:</strong> ATS "Connect with FAANG experts", "Unlock my results", the job-description step, the ATS results and Jobs for you pages; the Mock Interview app on <code>mi.dexity.com</code> (permissions, video, completion); Salary "Unlock your salary potential" as its own button; AI Quotient Share and Copy link.</li>
+<li><strong>Webinar attendance</strong> comes from Zoom and starts on 23 Apr 2026; a person who joined with a different email than they registered with isn't matched.</li>
+<li><strong>Lead-magnet history starts on 18 April 2026,</strong> so "share of all IK sales" and "bought before" can't see earlier use.</li>
+<li><strong>Assumption to confirm:</strong> HubSpot <code>latest_gql_date</code> = date of a webinar registration.</li>
+<li><strong>After isn't because of:</strong> sales after a tool followed it; they weren't necessarily caused by it.</li>
+</ul>
